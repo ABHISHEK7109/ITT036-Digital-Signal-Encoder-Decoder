@@ -1,0 +1,10 @@
+# Ignore built binaries
+*.exe
+*.out
+*.o
+*.app
+build/
+
+# Ignore editor settings
+.vscode/
+.DS_Store
