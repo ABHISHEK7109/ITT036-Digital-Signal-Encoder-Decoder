@@ -6,18 +6,15 @@
 #include<cstdlib>
 #include<ctime>
 using namespace std;
+string makeRandomBits(int length) {
+    string bits = "";
 
-string makeRandomBits(int length){
-    string bits=" ";
+    for (int i = 0; i < length; i++) {
+        bits += to_string(rand() % 2);
+        bits += " ";
+    }
 
-    for(int i =0;i<length;i++){
-        int bit=rand()% 2;
-        if(bit==0)
-        bits +="0 ";
-        else
-        bits +="1 ";
-        }
-        return bits;
+    return bits;
 }
 
 int main(){
