@@ -1,5 +1,5 @@
 #pragma once
 #include <string>
 
-// Header declaration for Manacher's O(N) Algorithm
+// Manacher's Algorithm in O(N) linear time
 std::string findLongestPalindromeManacher(const std::string& s);

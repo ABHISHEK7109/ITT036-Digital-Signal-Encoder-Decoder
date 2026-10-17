@@ -1,10 +1,9 @@
 #define _USE_MATH_DEFINES
 #include "input_engine.h"
-#include <iostream>
-#include <vector>
-#include <random>
-#include <cmath>
+#include <algorithm>
 #include <chrono>
+#include <cmath>
+#include <random>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -12,66 +11,75 @@
 
 using namespace std;
 
-// 1. Random Bitstream Generator
-string generateRandomBits(int length, bool injectZeros) {
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    mt19937 gen(seed);
-    uniform_int_distribution<int> bitDist(0, 1);
-    
-    string bitStream = "";
-    for (int i = 0; i < length; ++i) {
-        bitStream += to_string(bitDist(gen));
-    }
-
-    cout << "\n[Generator] Generated Random Bitstream (" << length << " bits): " << bitStream << endl;
-
-    if (injectZeros && length >= 20) {
-        bitStream.replace(2, 8, "00000000"); // 8 zeros for B8ZS test
-        bitStream.replace(12, 4, "0000");     // 4 zeros for HDB3 test
-        cout << "[Generator] Injected zero blocks for scrambling tests." << endl;
-    }
-
-    return bitStream;
+namespace {
+mt19937& rng() {
+    static mt19937 gen(static_cast<unsigned>(
+        chrono::system_clock::now().time_since_epoch().count()));
+    return gen;
 }
 
-// 2. Analog PCM Sampler with Console Print of Voltages & Bits
-string processPCMAnalogInput(int targetLength) {
-    cout << "\n[PCM Engine] Sampling Analog Wave V(t) = 5*sin(t) + 5 to generate " << targetLength << " bits..." << endl;
-    
-    int numSamples = (targetLength + 1) / 2; 
+// Put `len` zeros at `pos` and force the neighbouring bits to '1'
+void placeZeroRun(string& s, int pos, int len) {
+    for (int k = 0; k < len; ++k) s[pos + k] = '0';
+    const int before = pos - 1, after = pos + len;
+    if (before >= 0)              s[before] = '1';
+    if (after < (int)s.size())    s[after]  = '1';
+}
+}
 
-    // Randomize phase shift so wave values change on every execution
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    mt19937 gen(seed);
-    uniform_real_distribution<double> phaseDist(0.0, M_PI);
-    double phaseShift = phaseDist(gen);
+string generateRandomBits(int length) {
+    uniform_int_distribution<int> bitDist(0, 1);
+    string s(length, '0');
+    for (char& c : s) c = static_cast<char>('0' + bitDist(rng()));
+    return s;
+}
 
-    vector<double> sampledVoltages;
+string generateBitsWithZeroRuns(int length) {
+    string s = generateRandomBits(length);
+    if (length < 8) return s;
+
+    // 8-zero run at a random position
+    uniform_int_distribution<int> pos8(0, length - 8);
+    const int p8 = pos8(rng());
+    placeZeroRun(s, p8, 8);
+
+    // 4-zero run at a random position that keeps a 1-bit gap from the 8-run
+    vector<int> candidates;
+    for (int p = 0; p + 4 <= length; ++p)
+        if (p + 4 < p8 || p > p8 + 8) candidates.push_back(p);
+    if (!candidates.empty()) {
+        uniform_int_distribution<size_t> pick(0, candidates.size() - 1);
+        const int p4 = candidates[pick(rng())];
+        placeZeroRun(s, p4, 4);   // gap >= 1 bit, so it never touches the 8-run
+    }
+    return s;
+}
+
+bool isValidBitString(const string& s) {
+    return !s.empty() &&
+           all_of(s.begin(), s.end(), [](char c) { return c == '0' || c == '1'; });
+}
+
+PCMResult processPCMAnalogInput(double amplitude, double frequency,
+                                int numSamples, int bitsPerSample) {
+    PCMResult r;
+    r.amplitude = amplitude;
+    r.frequency = frequency;
+    r.bitsPerSample = bitsPerSample;
+
+    const int numLevels = 1 << bitsPerSample;
+    const double step = (2.0 * amplitude) / numLevels;          // quantization step
+
     for (int i = 0; i < numSamples; ++i) {
-        double t = i * (2.0 * M_PI / numSamples);
-        double voltage = 5.0 * sin(t + phaseShift) + 5.0; 
-        sampledVoltages.push_back(voltage);
+        const double t = static_cast<double>(i) / (numSamples * frequency); // 1 period
+        const double v = amplitude * sin(2.0 * M_PI * frequency * t);
+        int level = static_cast<int>((v + amplitude) / step);
+        level = min(max(level, 0), numLevels - 1);
+
+        r.voltages.push_back(v);
+        r.levels.push_back(level);
+        for (int b = bitsPerSample - 1; b >= 0; --b)             // MSB first
+            r.bits += static_cast<char>('0' + ((level >> b) & 1));
     }
-
-    string pcmBitStream = "";
-    cout << "\n--- PCM Sampled Voltages & Quantized Bit Levels ---" << endl;
-    
-    // Print each sample's exact voltage and corresponding 2-bit code
-    for (size_t i = 0; i < sampledVoltages.size(); ++i) {
-        double v = sampledVoltages[i];
-        string bits;
-        if (v < 2.5) bits = "00";
-        else if (v < 5.0) bits = "01";
-        else if (v < 7.5) bits = "10";
-        else bits = "11";
-
-        pcmBitStream += bits;
-        cout << "  Sample " << (i + 1) << ": " << v << " V  -> Quantized Bits: " << bits << endl;
-    }
-
-    if ((int)pcmBitStream.length() > targetLength) {
-        pcmBitStream = pcmBitStream.substr(0, targetLength);
-    }
-
-    return pcmBitStream;
+    return r;
 }
