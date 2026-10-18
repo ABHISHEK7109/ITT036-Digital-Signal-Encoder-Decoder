@@ -90,12 +90,16 @@ const ScrambleRule B8ZS_RULE = { 8, 0,
       {0,0,0, 1,-1,0,-1, 1} },
     { 1, 1 } };
 
-// HDB3: even count -> B00V (B = -last, V = B), odd count -> 000V (V = last)
-//   sel = count & 1 :  0 = even, 1 = odd
+// HDB3:
+// Even number of nonzero pulses since the last violation -> 000V
+// Odd number of nonzero pulses since the last violation  -> B00V
+//
+// B is opposite to the preceding pulse.
+// V is a violation pulse with the same polarity as the preceding pulse.
 const ScrambleRule HDB3_RULE = { 4, 1,
-    { {-1,0,0,-1,0,0,0,0},
-      { 0,0,0, 1,0,0,0,0} },
-    { -1, 1 } };
+    { { 0, 0, 0, 1, 0, 0, 0, 0 },
+      {-1, 0, 0,-1, 0, 0, 0, 0} },
+    { 1, -1 } };
 
 ScrambleResult scramble(const string& bits, const ScrambleRule& rule) {
     const size_t n = bits.size();
