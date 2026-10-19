@@ -1,4 +1,3 @@
-
 #include "raylib.h"
 #include "encoders.h"
 #include "input_engine.h"
@@ -562,7 +561,7 @@ void DrawWaveform(int x, int y, int width, int height) {
 
     if (!hasEncoded || encodedLevels.empty()) {
         DrawAppText(
-            "Enter bits and click Encode signal.",
+            "Enter bits and click Apply entered bits.",
             left + 12, center - 10, 16, C_MUTED
         );
         return;
@@ -768,7 +767,6 @@ void DrawPCMStaircase(int x, int y, int width, int height) {
     );
 
     // Draw the original sampled analog signal in blue.
-    // These are the actual voltage samples used by the PCM encoder.
     for (int i = 0; i + 1 < count; ++i) {
         const float x1 = left + (i + 0.5f) * cellWidth;
         const float x2 = left + (i + 1.5f) * cellWidth;
@@ -835,7 +833,6 @@ void DrawPCMStaircase(int x, int y, int width, int height) {
         C_TEXT
     );
 
-    // Shorter legend labels to avoid overlap.
     DrawAppText(
         "Blue: analog samples",
         left,
@@ -902,7 +899,15 @@ int main() {
                 CheckCollisionPointRec(mouse, bitsRect);
         }
 
+        // Digital bit input: accept only 0 and 1.
         if (inputFocused && !analogMode) {
+            // Ctrl+A clears the current sequence for replacement.
+            if ((IsKeyDown(KEY_LEFT_CONTROL) ||
+                 IsKeyDown(KEY_RIGHT_CONTROL)) &&
+                IsKeyPressed(KEY_A)) {
+                bitInput.clear();
+            }
+
             if (IsKeyPressed(KEY_BACKSPACE) && !bitInput.empty()) {
                 bitInput.pop_back();
             }
@@ -986,8 +991,8 @@ int main() {
 
             DrawAppText(
                 inputFocused
-                    ? "Type 0 or 1; Enter to finish"
-                    : "Click the field to edit bits",
+                    ? "Type 0 or 1; Ctrl+A clears; Enter finishes"
+                    : "Click field to edit; Ctrl+A replaces all bits",
                 45, 218, 12, C_MUTED
             );
 
@@ -997,6 +1002,16 @@ int main() {
 
             if (DrawButton(190, 245, 135, 36, "Fixed zero runs")) {
                 GenerateRandomBits(true);
+            }
+
+            // Apply the manually entered sequence.
+            if (DrawButton(45, 289, 280, 30, "Apply entered bits", true)) {
+                inputFocused = false;
+                EncodeCurrentBits();
+
+                if (hasEncoded) {
+                    status = "Manual bit sequence applied successfully.";
+                }
             }
         } else {
             DrawAppText("ANALOG INPUT: SINE WAVE", 45, 151, 13, C_MUTED);
