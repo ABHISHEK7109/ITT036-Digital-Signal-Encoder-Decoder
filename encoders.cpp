@@ -97,9 +97,12 @@ const ScrambleRule B8ZS_RULE = { 8, 0,
 // B is opposite to the preceding pulse.
 // V is a violation pulse with the same polarity as the preceding pulse.
 const ScrambleRule HDB3_RULE = { 4, 1,
-    { { 0, 0, 0, 1, 0, 0, 0, 0 },
-      {-1, 0, 0,-1, 0, 0, 0, 0} },
-    { 1, -1 } };
+    {
+        { -1, 0, 0, -1, 0, 0, 0, 0 },  // Even: B00V
+        {  0, 0, 0,  1, 0, 0, 0, 0 }   // Odd:  000V
+    },
+    { -1, 1 }
+};
 
 ScrambleResult scramble(const string& bits, const ScrambleRule& rule) {
     const size_t n = bits.size();

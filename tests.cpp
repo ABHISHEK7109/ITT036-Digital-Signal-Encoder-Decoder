@@ -110,15 +110,14 @@ int main() {
     const vector<TestCase> referenceTests = {
        {"B8ZS: eight zeros between pulses",
  "1000000001", "+000+-0-+-", false},
+{"HDB3: zero run at beginning",
+ "000010", "+00+-0", true},
 
-        {"HDB3: zero run at beginning",
-         "000010", "000-+0", true},
+{"HDB3: odd pulse count",
+ "100001", "+000+-", true},
 
-        {"HDB3: odd pulse count",
-         "100001", "+-00-+", true},
-
-        {"HDB3: even pulse count",
-         "1100001", "+-000-+", true}
+{"HDB3: even pulse count",
+ "1100001", "+-+00+-", true}
     };
 
     for (const auto& test : referenceTests) {
