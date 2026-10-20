@@ -15,9 +15,6 @@
 
 using namespace std;
 
-// ----------------------------------------------------------------------------
-// Input helpers
-// ----------------------------------------------------------------------------
 static void clearLine() {
     cin.clear();
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -105,9 +102,6 @@ static string readBitString() {
     }
 }
 
-// ----------------------------------------------------------------------------
-// Table-driven menu helper
-// ----------------------------------------------------------------------------
 template <typename Entry>
 static int chooseFrom(
     const string& title,
@@ -128,9 +122,6 @@ static int chooseFrom(
     );
 }
 
-// ----------------------------------------------------------------------------
-// Input sources
-// ----------------------------------------------------------------------------
 struct InputSource {
     const char* name;
     function<string()> run;
@@ -208,9 +199,6 @@ static string digitalMenu() {
     return modes.at(choice).run();
 }
 
-// ----------------------------------------------------------------------------
-// Encoders
-// ----------------------------------------------------------------------------
 struct EncoderEntry {
     const char* name;
     Encoder fn;
@@ -235,15 +223,12 @@ static const map<int, ScramblerEntry> SCRAMBLERS = {
     {2, {"HDB3", encodeHDB3}}
 };
 
-// ----------------------------------------------------------------------------
-// Main application
-// ----------------------------------------------------------------------------
 int main() {
     cout << "=====================================================\n"
          << "      ITT036 DIGITAL SIGNAL ENCODER / DECODER\n"
          << "=====================================================\n";
 
-    // 1. Select input type.
+    
     static const map<int, InputSource> inputTypes = {
         {1, {"Digital input", digitalMenu}},
         {2, {"Analog input (PCM)", analogPCM}}
@@ -351,7 +336,6 @@ int main() {
         }
     };
 
-    // Table-driven dispatch avoids a long if/else chain.
     const map<bool, function<void()>> actions = {
         {false, plain},
         {true, scrambled}
