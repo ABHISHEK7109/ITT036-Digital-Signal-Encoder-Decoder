@@ -163,14 +163,13 @@ PCMResult processPCMAnalogInput(
 
     for (int i = 0; i < numSamples; ++i) {
 
-        // Sample one complete period of the sine wave.
-        const double t =
-            static_cast<double>(i) /
-            (numSamples * frequency);
+        // Sample the sine wave over a fixed one-second interval.
+// Changing frequency now changes the number of cycles sampled.
+const double t =
+    static_cast<double>(i) / numSamples;
 
-        const double v =
-            amplitude * sin(2.0 * M_PI * frequency * t);
-
+const double v =
+    amplitude * sin(2.0 * M_PI * frequency * t);
         // Map the sample voltage to a quantization level.
         int level = static_cast<int>(
             (v + amplitude) / step
