@@ -40,12 +40,12 @@ void placeZeroRun(string& s, int pos, int len) {
     }
 }
 
-} // namespace
+} 
 
 
-// ============================================================
+
 // DIGITAL INPUT GENERATION
-// ============================================================
+
 
 // Generate a random sequence of bits.
 string generateRandomBits(int length) {
@@ -122,16 +122,14 @@ bool isValidBitString(const string& s) {
 }
 
 
-// ============================================================
-// PCM ENCODER
-// ============================================================
 
-// Sample a sine wave, quantize each sample, and convert
-// each quantization level into a binary PCM codeword.
+// PCM ENCODER
+
+
+// Sample a sine wave, quantize each sample, and convert each quantization level into a binary PCM codeword.
 //
-// bitsPerSample determines the number of quantization levels:
-// 2^bitsPerSample.
-//
+// bitsPerSample determines the number of quantization levels: 2^bitsPerSample.
+
 // Codewords are stored most-significant bit first.
 PCMResult processPCMAnalogInput(
     double amplitude,
@@ -141,7 +139,7 @@ PCMResult processPCMAnalogInput(
 {
     PCMResult r;
 
-    // Validate parameters before calculating quantization levels.
+    
     if (!isfinite(amplitude) ||
         !isfinite(frequency) ||
         amplitude <= 0.0 ||
@@ -193,18 +191,15 @@ const double v =
 }
 
 
-// ============================================================
+
 // PCM DECODER
-// ============================================================
+
 
 // Decode a PCM bitstream into reconstructed analog voltages.
-//
-// Each group of bitsPerSample bits represents one quantization
-// level. The decoder reconstructs the midpoint voltage of the
-// corresponding quantization interval.
-//
-// Returns an empty vector if the parameters or bitstream
-// are invalid.
+
+// Each group of bitsPerSample bits represents one quantization level. The decoder reconstructs the midpoint voltage of the corresponding quantization interval.
+
+// Returns an empty vector if the parameters or bitstream are invalid.
 vector<double> decodePCM(
     const string& bits,
     int bitsPerSample,
